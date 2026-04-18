@@ -13,9 +13,9 @@ public_users.post("/register", (req,res) => {
       return res.status(403).json({message: 'Error registering new user!'});
     }
   
-    //const usernameExists = users.filter((user) => user['username'] === username);
-    if (!isValid(username)) {
+    if (isValid(username)) {
       users.push({"username": username, "password": password});
+      console.log(users);
       return res.status(200).json({message: 'New user successfully registered!'});
     }
   

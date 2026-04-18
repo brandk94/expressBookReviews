@@ -7,9 +7,14 @@ let users = [];
 
 const isValid = (username)=>{ //returns boolean
 //write code to check is the username is valid
-  const matchingUsername = Object.keys(users).filter((user) => user === username);
-  if (!matchingUsername) {
+  if (!username) {
     return false;
+  }
+
+  for (const user of users) {
+    if (user['username'] === username) {
+      return false;
+    }
   }
 
   return true;
@@ -17,9 +22,14 @@ const isValid = (username)=>{ //returns boolean
 
 const authenticatedUser = (username,password)=>{ //returns boolean
 //write code to check if username and password match the one we have in records.
-  const userPassword = users[username];
-  if (userPassword && userPassword === password) {
-    return true;
+  if (!username || !password) {
+    return false;
+  }
+
+  for (const user of users) {
+    if (user['username'] === username && user['password'] === password) {
+      return true;
+    }
   }
 
   return false;
@@ -34,16 +44,16 @@ regd_users.post("/login", (req,res) => {
     return res.status(403).json({message: "Error loging in!"});
   }
 
-  if (isValid(username)) {
-    if (authenticatedUser(username, password)) {
-      let accessToken = jwt.sign({
-        data: password
-      }, 'access', { expiresIn : 60 * 60 });
+  if (authenticatedUser(username, password)) {
+    // Generate JWT access token
+    let accessToken = jwt.sign({
+      data: password
+    }, 'access', { expiresIn : 60 * 60 });
 
-      req.session.authorization = {
-        accessToken, username
-      };
-    }
+    // Store access token and username in session
+    req.session.authorization = {
+      accessToken, username
+    };
 
     return res.status(200).json({message: 'User successfully logged in!'});
   } else {
@@ -53,8 +63,19 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  let filtered_book = books[req.params.isbn];
+  const newReview = req.body.review;
+  const userInSession = req.session.authorization['username'];
+  console.log(newReview);
+  console.log(userInSession);
+
+  if (filtered_book && newReview) {
+    let existingReviews = filtered_book['reviews'];
+    existingReviews[userInSession] = newReview;
+    return res.status(200).json({message: `New review by ${username} added to book ${filtered_book['title']}.`})
+  }
+
+  return res.status(403).json({message: `Book of ISBN ${req.params.isbn} not found!`})
 });
 
 module.exports.authenticated = regd_users;
