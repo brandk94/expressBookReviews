@@ -26,91 +26,89 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/', async (req, res) => { 
-  try {
-    const book_list = await (async function() {
-      return JSON.stringify(books);
-    })();
-    res.send(book_list);
-  } catch (error) {
-    res.send(error);
-  }
+public_users.get('/', function (req, res) { 
+    return res.status(200).send(books);
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn', async (req, res) => {
-  const isbn = req.params.isbn;
-  try {
-    const isbn_book = await (async function() {
-      if (books[isbn]) {
-        return JSON.stringify(books[isbn]);
-      } else {
-        return `Book with ISBN ${req.params.isbn} not found!`;
-      }
-    })();
-    res.send(isbn_book);
-  } catch (error) {
-    return res.status(403).json(error);
-  }
+public_users.get('/isbn/:isbn', function (req, res) {
+    const isbn = req.params.isbn;
+
+    // If provided ISBN parameter isn't an integer greater than 0, send invalidation message
+    if (!Number.isInteger(Number(isbn)) || parseInt(isbn) <= 0) {
+        return res.status(403).send("Invalid ISBN. Must be an integer greater than 0");
+    }
+
+    // Send details of desired book
+    return res.status(200).send(books[isbn]);
  });
   
 // Get book details based on author
-public_users.get('/author/:author', async (req, res) => {
-  const filtered_author = req.params.author;
-  try {
-    const author_books = await (async function() {
-      const matching_books = [];
-      for (const [isbn, book] of Object.entries(books)) {
-        if (book['author'] === filtered_author) {
-          matching_books.push(book);
-        }
-      }
-      if (matching_books.length > 0) {
-        JSON.stringify(matching_books);
-      } else {
-        res.send(`No books written by ${filtered_author} found!`);
-      }
-    })();
+public_users.get('/author/:author', (req, res) => {
+    const filtered_author = req.params.author;
 
-    res.send(author_books);
-  } catch (error) {
-    return res.status(403).json(error);
-  }
+    // Find and collect books from DB matching queried author
+    const books_written_by_author = [];
+    for (const [isbn, book] of Object.entries(books)) {
+        if (book['author'] === filtered_author) {
+            books_written_by_author.push(book);
+        }
+    }
+
+    if (books_written_by_author.length > 0) {
+        // If any matching books found
+        return res.status(200).send(books_written_by_author);  
+    } else {
+        // If there aren't any matching books
+        return res.status(200).send(`No books written by ${filtered_author} found!`);
+    }
 });
 
 // Get all books based on title
-public_users.get('/title/:title', async (req, res) => {
+public_users.get('/title/:title', (req, res) => {
     const filtered_title = req.params.title;
-    try {
-      const matching_titles = await (async function() {
-        const title_books = [];
-        for (const [isbn, book] of Object.entries(books)) {
-          if (book['title'] === filtered_title) {
+
+    // Find and collect books from DB matching queried title name
+    const title_books = [];
+    for (const [isbn, book] of Object.entries(books)) {
+        if (book['title'] === filtered_title) {
             title_books.push(book);
-          }
         }
+    }
 
-        if (title_books.length > 0) {
-          return JSON.stringify(title_books);
-        } else {
-          return `No books with title '${filtered_title}' found!`;
-        }
-      })();
-
-      res.send(matching_titles);
-    } catch (error) {
-      return res.status(403).json(error);
+    if (title_books.length > 0) {
+        // If there are matching books
+        return res.status(200).send(title_books);
+    } else {
+        // If there aren't any matching books
+        return res.status(200).send(`No books with title '${filtered_title}' found!`);
     }
 });
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
-  const isbn_book = books[req.params.isbn];
-  if (!isbn_book) {
-    return res.status(403).json({message: `No book of ISBN ${req.params.isbn} found`});
-  }
-  const book_reviews = isbn_book['reviews'];
-  return res.send(JSON.stringify(book_reviews));
+    const isbn = req.params.isbn;
+
+    // If provided ISBN parameter isn't an integer greater than 0, send invalidation message
+    if (!Number.isInteger(Number(isbn)) || parseInt(isbn) <= 0) {
+        return res.status(403).send("Invalid ISBN. Must be an integer greater than 0.");
+    }
+
+    // If no book with matching ISBN is found, send message that no such book is in DB
+    const isbn_book = books[isbn];
+    if (!isbn_book) {
+        return res.status(200).send(`No book of ISBN ${isbn} found!`);
+    }
+
+    const book_reviews = isbn_book['reviews'];
+    console.log(Object.keys(book_reviews).length);
+    if (Object.keys(book_reviews).length > 0) {
+        // If there are reviews tied in with book
+        return res.status(200).send(book_reviews);
+    } else {
+        // If there aren't any reviews tied in with book
+        return res.status(200).send(`No reviews for the book '${isbn_book['title']}'.`);
+    }
 });
 
 module.exports.general = public_users;
