@@ -36,7 +36,7 @@ const authenticatedUser = (username,password)=>{ //returns boolean
 }
 
 //only registered users can login
-regd_users.post("/login", (req,res) => {
+regd_users.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
@@ -55,6 +55,8 @@ regd_users.post("/login", (req,res) => {
       accessToken, username
     };
 
+    console.log("Access Token: " + accessToken);
+
     return res.status(200).json({message: 'User successfully logged in!'});
   } else {
     return res.status(403).json({message: "Invalid login. Check username and password."});
@@ -66,16 +68,26 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   let filtered_book = books[req.params.isbn];
   const newReview = req.body.review;
   const userInSession = req.session.authorization['username'];
-  console.log(newReview);
-  console.log(userInSession);
 
-  if (filtered_book && newReview) {
+  if (filtered_book && newReview && userInSession) {
     let existingReviews = filtered_book['reviews'];
     existingReviews[userInSession] = newReview;
-    return res.status(200).json({message: `New review by ${username} added to book ${filtered_book['title']}.`})
+    return res.status(200).json({message: `New review by ${userInSession} added to book ${filtered_book['title']}.`})
   }
 
   return res.status(403).json({message: `Book of ISBN ${req.params.isbn} not found!`})
+});
+
+// Delete a book review
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  let filtered_book = books[req.params.isbn];
+  const userInSession = req.session.authorization['username'];
+  if (userInSession) {
+    delete filtered_book['reviews'][userInSession];
+    return res.status(200).json({message: `Review by ${userInSession} for ${filtered_book['title']} deleted!`});
+  }
+
+  return res.status(403).json({message: `Unable to delete review for ${filtered_book['title']}!`});
 });
 
 module.exports.authenticated = regd_users;
