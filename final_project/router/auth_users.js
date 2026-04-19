@@ -72,7 +72,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   if (filtered_book && newReview && userInSession) {
     let existingReviews = filtered_book['reviews'];
     existingReviews[userInSession] = newReview;
-    return res.status(200).json({message: `New review by ${userInSession} added to book ${filtered_book['title']}.`})
+    return res.status(200).json(books);
   }
 
   return res.status(403).json({message: `Book of ISBN ${req.params.isbn} not found!`})
@@ -84,7 +84,7 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
   const userInSession = req.session.authorization['username'];
   if (userInSession) {
     delete filtered_book['reviews'][userInSession];
-    return res.status(200).json({message: `Review by ${userInSession} for ${filtered_book['title']} deleted!`});
+    return res.status(200).json(books);
   }
 
   return res.status(403).json({message: `Unable to delete review for ${filtered_book['title']}!`});
