@@ -20,7 +20,7 @@ const isValid = (username) => {
   return true;
 }
 
-// Check if username and password match the one we have in records.
+// Check if username and password match any pair in records
 const authenticatedUser = (username, password) => {
 
   if (!username || !password) {
@@ -56,9 +56,7 @@ regd_users.post("/login", (req, res) => {
       accessToken, username
     };
 
-    console.log("Access Token: " + accessToken);
-
-    return res.status(200).send('User successfully logged in!');
+    return res.status(200).send(JSON.stringify(req.session.authorization) + '\nUser successfully logged in!');
   } else {
     return res.status(403).send("Invalid login. Check username and password.");
   }
@@ -69,13 +67,13 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   let filtered_book = books[req.params.isbn];
   const userInSession = req.session.authorization['username'];
   const newReview = req.body.review;
-  console.log("New Review: " + newReview);
-  console.log("User In Session: " + userInSession);
 
   if (filtered_book && newReview && userInSession) {
+    const book_before_review_added = JSON.stringify(filtered_book);
     let existingReviews = filtered_book['reviews'];
     existingReviews[userInSession] = newReview;
-    return res.status(200).send(books);
+    const book_after_review_added = JSON.stringify(filtered_book);
+    return res.status(200).send("Before review added: \n" + book_before_review_added + '\nAfter review added:\n' + book_after_review_added);
   }
 
   return res.status(403).send(`Book of ISBN ${req.params.isbn} not found!`)
@@ -86,8 +84,10 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
   let filtered_book = books[req.params.isbn];
   const userInSession = req.session.authorization['username'];
   if (userInSession) {
+    const book_before_review_deleted = JSON.stringify(filtered_book);
     delete filtered_book['reviews'][userInSession];
-    return res.status(200).send(books);
+    const book_after_review_deleted = JSON.stringify(filtered_book);
+    return res.status(200).send("Before review deleted: \n" + book_before_review_deleted + '\nAfter review deleted:\n' + book_after_review_deleted);
   }
 
   return res.status(403).send(`Unable to delete review for ${filtered_book['title']}!`);

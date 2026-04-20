@@ -12,17 +12,16 @@ public_users.post("/register", (req,res) => {
   
     // Throw error if neither username or password are given
     if (!username || !password) {
-      return res.status(403).json({message: 'Error registering new user!'});
+      return res.status(403).send('Error registering new user!');
     }
   
     // Add new username-password pair to users array
     if (isValid(username)) {
       users.push({"username": username, "password": password});
-      console.log(users);
-      return res.status(200).json({message: 'New user successfully registered!'});
+      return res.status(200).send(JSON.stringify(users) + '\nNew user successfully registered!');
     }
   
-    return res.status(403).json({message: 'Username already exists!'});
+    return res.status(403).send('Username already exists!');
 });
 
 // Get the book list available in the shop
@@ -39,8 +38,16 @@ public_users.get('/isbn/:isbn', function (req, res) {
         return res.status(403).send("Invalid ISBN. Must be an integer greater than 0");
     }
 
-    // Send details of desired book
-    return res.status(200).send(books[isbn]);
+    const searched_book = books[isbn];
+    if (searched_book) {
+        // Send details of desired book
+        return res.status(200).send(books[isbn]);
+    } else {
+        // Send details of book not found
+        return res.status(200).send(`No book with ISBN ${isbn} found.`)
+    }
+
+
  });
   
 // Get book details based on author
