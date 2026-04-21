@@ -42,7 +42,7 @@ regd_users.post("/login", (req, res) => {
   const password = req.body.password;
 
   if (!username || !password) {
-    return res.status(403).send("Error loging in!");
+    return res.status(403).json({error: "Error loging in! No username and/or password provided."});
   }
 
   if (authenticatedUser(username, password)) {
@@ -56,9 +56,9 @@ regd_users.post("/login", (req, res) => {
       accessToken, username
     };
 
-    return res.status(200).send(JSON.stringify(req.session.authorization) + '\nUser successfully logged in!');
+    return res.status(200).json({message: "User successfully logged in!"});
   } else {
-    return res.status(403).send("Invalid login. Check username and password.");
+    return res.status(403).json({error: "Invalid login. Check username and password."});
   }
 });
 
@@ -74,7 +74,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     return res.status(200).json({message: `Review successfully added to ${filtered_book['title']}`});
   }
 
-  return res.status(403).send(`Book of ISBN ${req.params.isbn} not found!`)
+  return res.status(403).json({message: `Book of ISBN ${req.params.isbn} not found!`});
 });
 
 // Delete a book review
@@ -86,7 +86,7 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
     return res.status(200).json({message: `Review for ${filtered_book['title']} successfully deleted.`});
   }
 
-  return res.status(403).send(`Unable to delete review for ${filtered_book['title']}!`);
+  return res.status(403).send({message: `Unable to delete review for ${filtered_book['title']}!`});
 });
 
 module.exports.authenticated = regd_users;
