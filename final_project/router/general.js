@@ -25,58 +25,46 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the whole book list available in the shop (redone for task 10)
-public_users.get('/', (req, res) => { 
-    const book_list_promise = new Promise((resolve, reject) => {
-        axios.get('http://localhost:5000/')
-            .then(response => resolve(response.data))
-            .catch(error => reject(error))
-    });
-
-    book_list_promise
-        .then(book_list => res.status(200).json(book_list))
-        .catch(error => res.status(403).json({error: error.message}));
+public_users.get('/', async (req, res) => { 
+    try {
+        const book_list = await axios.get('http://localhost:5000/');
+        res.status(200).json(book_list);
+    } catch (error) {
+        res.status(403).json({error: error.message});
+    }
 });
 
 // Get book details based on ISBN (redone for task 11)
-public_users.get('/isbn/:isbn', function (req, res) {
-    const isbn = req.params.isbn;
-    const isbn_promise = new Promise((resolve, reject) => {
-        axios.get(`http://localhost:5000/isbn/${isbn}`)
-            .then(response => resolve(response.data))
-            .catch(error => reject(error));
-    });
-
-    isbn_promise
-        .then(isbn_books => res.status(200).json(isbn_books))
-        .catch(error => res.status(403).json({error: error.message}));
+public_users.get('/isbn/:isbn', async (req, res) => {
+    try {
+        const isbn = req.params.isbn;
+        const isbn_books = await axios.get(`http://localhost:5000/isbn/${isbn}`);
+        res.status(200).json(isbn_books);
+    } catch (error) {
+        res.status(403).json({error: error.message});
+    }
  });
 
 // Get book details based on author (redone for task 12)
-public_users.get('/author/:author', (req, res) => {
-    const author = req.params.author;
-    const author_promise = new Promise((resolve, reject) => {
-        axios.get(`http://localhost:5000/author/${author}`)
-            .then(response => resolve(response.data))
-            .catch(error => reject(error));
-    });
-
-    author_promise
-        .then(author_books => res.status(200).json(author_books))
-        .catch(error => res.status(403).json({error: error.message}));
+public_users.get('/author/:author', async (req, res) => {
+    try {
+        const author = req.params.author;
+        const author_books = await axios.get(`http://localhost:5000/author/${author}`)
+        res.status(200).json(author_books);
+    } catch (error) {
+        res.status(403).json({error: error.message});
+    }
 });
 
 // Get books details based on title (redone for task 13)
-public_users.get('/title/:title', (req, res) => {
-    const title = req.params.title;
-    const title_promise = new Promise((resolve, reject) => {
-        axios.get(`http://localhost:5000/title/${title}`)
-            .then(response => resolve(response.data))
-            .catch(error => reject(error));
-    });
-
-    title_promise
-        .then(title_books => res.status(200).json(title_books))
-        .catch(error => res.status(403).json({error: error.message}));
+public_users.get('/title/:title', async (req, res) => {
+    try {
+        const title = req.params.title;
+        const title_books = await axios.get(`http://localhost:5000/title/${title}`)
+        res.status(200).json(title_books);
+    } catch (error) {
+        res.status(403).json({error: error.message});
+    }
 });
 
 //  Get book review
@@ -101,7 +89,7 @@ public_users.get('/review/:isbn', function (req, res) {
         return res.status(200).send(book_reviews);
     } else {
         // If there aren't any reviews tied in with book
-        return res.status(200).json({message: `No reviews found for the book '${isbn_book['title']}'.`});
+        return res.status(200).json({});
     }
 });
 
